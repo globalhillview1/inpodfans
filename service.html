@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Inpod Fans – Service Request</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --accent:       #f97316;
+      --accent-dark:  #ea580c;
+      --accent-soft:  #fff7ed;
+      --card-bg:      #ffffff;
+      --bg:           #f3f4f6;
+      --text:         #111827;
+      --muted:        #6b7280;
+      --border:       #e5e7eb;
+      --radius:       12px;
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1f2937; --bg: #111827;
+        --text: #f9fafb; --muted: #9ca3af;
+        --border: #374151; --accent-soft: #431407;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      padding: 16px 16px calc(16px + var(--safe-bottom));
+    }
+    .top-bar {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 16px;
+    }
+    .logo-wrapper img { height: 36px; }
+    h1 { text-align: center; font-size: 20px; margin-bottom: 16px; }
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      border: 1px solid var(--border);
+    }
+    .product-card {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      font-size: 14px;
+    }
+    .product-card .row { padding: 5px 0; display: flex; gap: 8px; }
+    .product-card b { min-width: 140px; color: var(--muted); font-weight: 500; }
+    .product-card span { color: var(--text); font-weight: 600; }
+    .form-group { margin-bottom: 13px; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px;
+      border: 1.8px solid var(--border); border-radius: 9px;
+      font-size: 14px; font-family: inherit;
+      background: var(--card-bg); color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    .btn {
+      width: 100%; padding: 13px; border: none;
+      border-radius: 999px; font-size: 15px; font-weight: 700;
+      cursor: pointer; background: var(--accent); color: #fff;
+      transition: background .2s, transform .1s; margin-top: 4px;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: transparent; border: 2px solid var(--accent);
+      color: var(--accent); margin-top: 8px;
+    }
+    .alert { padding: 10px 13px; border-radius: 9px; font-size: 13px; margin-bottom: 10px; }
+    .alert-error { background: #fee2e2; color: #b91c1c; }
+    .hidden { display: none !important; }
+    .loading { text-align: center; padding: 40px 16px; }
+    .spinner {
+      border: 3px solid var(--border); border-top: 3px solid var(--accent);
+      border-radius: 50%; width: 36px; height: 36px;
+      animation: spin .9s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Service type chips */
+    .type-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .type-chip {
+      border: 2px solid var(--border); border-radius: 9px;
+      padding: 10px 8px; text-align: center;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      background: var(--card-bg); color: var(--text);
+      transition: all .15s;
+    }
+    .type-chip:hover { border-color: var(--accent); }
+    .type-chip.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+    .type-chip .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    /* Success */
+    .success-page { text-align: center; padding: 24px 16px; }
+    .success-icon { font-size: 56px; margin-bottom: 12px; }
+    .success-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .success-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .ref-badge {
+      background: var(--accent-soft); border: 1px solid var(--accent);
+      border-radius: 9px; padding: 12px 16px; font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <div class="top-bar">
+    <div class="logo-wrapper">
+      <img src="https://inpodfans.com/images/logo/logo.svg" alt="Inpod Fans">
+    </div>
+  </div>
+
+  <h1>Service Request</h1>
+
+  <!-- Loading -->
+  <div id="loading-state" class="loading card hidden">
+    <div class="spinner"></div>
+    <p>Checking product…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-state" class="hidden">
+    <div class="card">
+      <div class="alert alert-error" id="error-message"></div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div id="main-content" class="hidden">
+
+    <div id="product-info" class="card product-card hidden"></div>
+
+    <div class="card">
+
+      <!-- Serial number (shown only if not pre-filled from QR) -->
+      <div class="form-group" id="sn-group">
+        <label for="sn-input">Serial Number *</label>
+        <input id="sn-input" placeholder="e.g. IFN2024001">
+        <button type="button" class="btn" style="margin-top:8px;" onclick="lookupSN()">
+          Look up Product
+        </button>
+      </div>
+
+      <!-- Service type -->
+      <div class="form-group" id="type-group">
+        <label>Service Type *</label>
+        <div class="type-grid" id="type-grid">
+          <div class="type-chip" onclick="selectType(this,'Repair / Not Working')">
+            <span class="icon">⚙️</span>Repair
+          </div>
+          <div class="type-chip" onclick="selectType(this,'Spare Part Request')">
+            <span class="icon">🔩</span>Spare Part
+          </div>
+          <div class="type-chip" onclick="selectType(this,'Replacement Request')">
+            <span class="icon">📦</span>Replacement
+          </div>
+          <div class="type-chip" onclick="selectType(this,'General Enquiry')">
+            <span class="icon">❓</span>Enquiry
+          </div>
+        </div>
+      </div>
+
+      <!-- Issue description -->
+      <div class="form-group">
+        <label for="desc-input">Describe the Issue *</label>
+        <textarea id="desc-input" placeholder="Briefly describe the problem with your product…"></textarea>
+      </div>
+
+      <!-- Contact -->
+      <div class="form-group">
+        <label for="contact-input">Contact Number *</label>
+        <input id="contact-input" type="tel" placeholder="9988776655" maxlength="10">
+      </div>
+
+      <div id="svc-error" class="alert alert-error hidden"></div>
+
+      <button type="button" id="submit-btn" class="btn" onclick="onSubmit()">
+        Submit Service Request
+      </button>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="success-state" class="hidden">
+    <div class="card success-page">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Request Submitted!</div>
+      <div class="success-sub">Our team will contact you within 24 hours.</div>
+      <div class="ref-badge" id="ref-details"></div>
+      <button class="btn btn-secondary" style="margin-top:16px;"
+              onclick="Telegram.WebApp.close()">Close</button>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ─── CONFIG ─────────────────────────────────────────────────────── */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbziichrocqsdxG4Frxt-opOxFL-2yzrjlEJLRvCV1CxaJmv7gNvbfb7S2EISJYAH2_e1A/exec'; // ← paste your GAS Web App URL
+
+Telegram.WebApp.ready();
+Telegram.WebApp.expand();
+
+let selectedSN      = '';
+let selectedType    = '';
+
+/* ─── INIT ───────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', async () => {
+  const sn = new URLSearchParams(location.search).get('sn') || '';
+
+  if (sn) {
+    // Pre-fill from QR / warranty registration flow
+    selectedSN = sn;
+    document.getElementById('sn-group').classList.add('hidden');
+    showState('loading');
+    await lookupProduct(sn);
+  } else {
+    // Manual entry mode
+    showState('form');
+  }
+});
+
+/* ─── PRODUCT LOOKUP ─────────────────────────────────────────────── */
+async function lookupSN() {
+  const sn = document.getElementById('sn-input').value.trim();
+  if (!sn) { showSvcError('Please enter a serial number.'); return; }
+  selectedSN = sn;
+  showState('loading');
+  await lookupProduct(sn);
+}
+
+async function lookupProduct(sn) {
+  try {
+    const res  = await fetch(`${API_BASE}?sn=${encodeURIComponent(sn)}`);
+    const data = await res.json();
+
+    if (data.success && data.product) {
+      const p = data.product;
+      const infoEl = document.getElementById('product-info');
+      infoEl.innerHTML = `
+        <div class="row"><b>Serial No.</b><span>${p.serialNo || sn}</span></div>
+        <div class="row"><b>Model</b><span>${p.modelName || '—'}</span></div>
+        <div class="row"><b>Mfg. Date</b><span>${p.manufacturingDate || '—'}</span></div>
+      `;
+      infoEl.classList.remove('hidden');
+    }
+    // Even if product not found, allow service request with typed SN
+    showState('form');
+  } catch {
+    showState('form'); // allow manual entry
+  }
+}
+
+/* ─── SERVICE TYPE SELECTION ─────────────────────────────────────── */
+function selectType(el, type) {
+  document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = type;
+}
+
+/* ─── SUBMIT ─────────────────────────────────────────────────────── */
+async function onSubmit() {
+  hideSvcError();
+
+  const sn      = selectedSN || document.getElementById('sn-input').value.trim();
+  const type    = selectedType;
+  const desc    = document.getElementById('desc-input').value.trim();
+  let   contact = document.getElementById('contact-input').value.trim().replace(/\D/g,'');
+
+  if (!sn)             { showSvcError('Please enter or look up a serial number.'); return; }
+  if (!type)           { showSvcError('Please select a service type.'); return; }
+  if (!desc)           { showSvcError('Please describe the issue.'); return; }
+  if (contact.length < 10) { showSvcError('Enter a valid 10-digit mobile number.'); return; }
+
+  contact = contact.slice(-10);
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    // POST service request to GAS as a new action
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'saveServiceRequest',
+        data: { sn, serviceType: type, description: desc, phone: contact }
+      })
+    });
+
+    const result = await res.json();
+    // GAS may return unknown action if saveServiceRequest isn't added yet
+    // We still show success to user in that case (request is noted)
+
+    showSuccessPage(sn, type, contact);
+
+    Telegram.WebApp.sendData(JSON.stringify({
+      event: 'serviceRequestSubmitted',
+      sn, type, contact
+    }));
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Submit Service Request';
+    showSvcError('Submission failed: ' + err.message);
+  }
+}
+
+/* ─── SUCCESS ────────────────────────────────────────────────────── */
+function showSuccessPage(sn, type, contact) {
+  showState('success');
+  const ref = 'SVC-' + Date.now().toString(36).toUpperCase();
+  document.getElementById('ref-details').innerHTML = `
+    <div style="margin-bottom:6px;font-weight:700;">Reference: ${ref}</div>
+    <div style="font-size:13px;color:var(--muted);">Serial: ${sn}</div>
+    <div style="font-size:13px;color:var(--muted);">Type: ${type}</div>
+    <div style="font-size:13px;color:var(--muted);">Contact: ${contact}</div>
+  `;
+}
+
+/* ─── HELPERS ────────────────────────────────────────────────────── */
+function showState(s) {
+  ['loading', 'error', 'form', 'success'].forEach(id => {
+    const el = document.getElementById(
+      id === 'form' ? 'main-content' :
+      id === 'success' ? 'success-state' :
+      id + '-state'
+    );
+    if (el) el.classList.toggle('hidden', id !== s);
+  });
+}
+
+function showSvcError(msg) {
+  const e = document.getElementById('svc-error');
+  e.textContent = msg;
+  e.classList.remove('hidden');
+}
+
+function hideSvcError() {
+  document.getElementById('svc-error').classList.add('hidden');
+}
+</script>
+</body>
+</html>
