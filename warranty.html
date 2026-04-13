@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Inpod Fans – Warranty Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- Telegram Web App SDK (required for Mini App integration) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- MSG91 OTP -->
+  <script src="https://verify.msg91.com/otp-provider.js" async
+    onerror="this.src='https://verify.phone91.com/otp-provider.js'"></script>
+
+  <style>
+    :root {
+      --accent:       #f97316;
+      --accent-dark:  #ea580c;
+      --accent-soft:  #fff7ed;
+      --card-bg:      #ffffff;
+      --bg:           #f3f4f6;
+      --text:         #111827;
+      --muted:        #6b7280;
+      --border:       #e5e7eb;
+      --radius:       12px;
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Honour Telegram's colour scheme if dark mode */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1f2937;
+        --bg:      #111827;
+        --text:    #f9fafb;
+        --muted:   #9ca3af;
+        --border:  #374151;
+        --accent-soft: #431407;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px 16px calc(16px + var(--safe-bottom));
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .logo-wrapper img { height: 36px; }
+
+    .lang-switch {
+      display: flex; gap: 4px;
+      background: var(--card-bg);
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .lang-btn {
+      border: none; padding: 4px 10px;
+      border-radius: 999px; font-size: 12px;
+      cursor: pointer; background: transparent;
+      color: var(--muted); font-weight: 600;
+    }
+    .lang-btn.active { background: var(--accent); color: #fff; }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      border: 1px solid var(--border);
+    }
+
+    .product-card {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      font-size: 14px;
+    }
+    .product-card .row { padding: 5px 0; display: flex; gap: 8px; }
+    .product-card b { min-width: 140px; color: var(--muted); font-weight: 500; }
+    .product-card span { color: var(--text); font-weight: 600; }
+
+    .form-group { margin-bottom: 13px; }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+    }
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.8px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--card-bg);
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+    }
+    input::placeholder { color: var(--muted); }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: background .2s, transform .1s;
+      margin-top: 4px;
+      letter-spacing: .3px;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      margin-top: 8px;
+    }
+
+    .alert {
+      padding: 10px 13px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .alert-error { background: #fee2e2; color: #b91c1c; }
+    .alert-info  { background: #dbeafe; color: #1e40af; }
+    .alert-success { background: #d1fae5; color: #065f46; }
+
+    .hidden { display: none !important; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px 16px; }
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success */
+    .success-page { text-align: center; padding: 24px 16px; }
+    .success-icon { font-size: 56px; margin-bottom: 12px; }
+    .success-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .success-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .warranty-card {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .warranty-card .wrow { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .warranty-card .wrow:last-child { border-bottom: none; }
+    .warranty-card .wlabel { color: var(--muted); font-size: 12px; }
+    .warranty-card .wval { font-weight: 600; color: var(--text); }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <div class="top-bar">
+    <div class="logo-wrapper">
+      <img src="https://inpodfans.com/images/logo/logo.svg" alt="Inpod Fans">
+    </div>
+    <div class="lang-switch">
+      <button id="lang-en" class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button id="lang-hi" class="lang-btn"        onclick="setLang('hi')">हि</button>
+    </div>
+  </div>
+
+  <h1 id="title-text">Warranty Registration</h1>
+
+  <!-- Loading -->
+  <div id="loading-state" class="loading card hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading product…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-state" class="hidden">
+    <div class="card">
+      <div class="alert alert-error" id="error-message"></div>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px;">
+        Contact support: <a href="mailto:globalhillview1@gmail.com" style="color:var(--accent);">globalhillview1@gmail.com</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Main form (hidden until product loads) -->
+  <div id="main-content" class="hidden">
+
+    <div id="product-info" class="card product-card"></div>
+
+    <div class="card">
+      <!-- Dealer -->
+      <div class="form-group" id="dealer-select-group">
+        <label for="dealer-select" id="lbl-dealer">Dealer Name *</label>
+        <select id="dealer-select">
+          <option value="">Loading dealers…</option>
+        </select>
+      </div>
+      <div class="form-group hidden" id="dealer-other-group">
+        <label for="dealer-other-input" id="lbl-dealer-other">Other Dealer Name *</label>
+        <input id="dealer-other-input" placeholder="Enter dealer name">
+      </div>
+
+      <!-- Customer -->
+      <div class="form-group">
+        <label for="customer-input" id="lbl-customer">Customer Name *</label>
+        <input id="customer-input" placeholder="Your full name">
+      </div>
+
+      <!-- Purchase date -->
+      <div class="form-group">
+        <label for="purchase-input" id="lbl-purchase">Purchase Date *</label>
+        <input type="date" id="purchase-input">
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label for="phone-input" id="lbl-phone">Mobile Number *</label>
+        <input id="phone-input" type="tel" placeholder="9988776655" maxlength="10">
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email-input" id="lbl-email">Email (optional)</label>
+        <input id="email-input" type="email" placeholder="name@example.com">
+      </div>
+
+      <div id="client-error" class="alert alert-error hidden"></div>
+      <div id="client-info"  class="alert alert-info  hidden"></div>
+
+      <button type="button" id="verify-btn" class="btn" onclick="onVerifyClick()">
+        Verify OTP &amp; Register
+      </button>
+    </div>
+  </div>
+
+  <!-- Success page -->
+  <div id="success-state" class="hidden">
+    <div class="card success-page">
+      <div class="success-icon">🎉</div>
+      <div class="success-title" id="succ-title">Registration Successful!</div>
+      <div class="success-sub"   id="succ-sub">Your warranty is now active.</div>
+      <div class="warranty-card" id="warranty-details"></div>
+      <button class="btn btn-secondary" style="margin-top:16px;"
+              onclick="Telegram.WebApp.close()">Close</button>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ─── CONFIGURATION ─────────────────────────────────────────────── */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbziichrocqsdxG4Frxt-opOxFL-2yzrjlEJLRvCV1CxaJmv7gNvbfb7S2EISJYAH2_e1A/exec'; // ← paste your GAS Web App URL
+
+/* ─── TELEGRAM MINI APP INIT ────────────────────────────────────── */
+Telegram.WebApp.ready();
+Telegram.WebApp.expand();
+
+/* ─── STATE ─────────────────────────────────────────────────────── */
+let currentLang = 'en';
+let registrationData = null;
+window.manufacturingDateRaw = '';
+window.currentSerialNo = '';
+
+/* ─── TRANSLATIONS ──────────────────────────────────────────────── */
+const T = {
+  en: {
+    title: 'Warranty Registration',
+    dealer: 'Dealer Name', dealerOther: 'Other Dealer Name',
+    customer: 'Customer Name', purchase: 'Purchase Date',
+    phone: 'Mobile Number', email: 'Email (optional)',
+    verifyBtn: 'Verify OTP & Register',
+    loading: 'Loading product…',
+    otpOpen: 'Opening OTP…', submitting: 'Submitting…',
+    errorNoSN: 'Missing serial number. Please scan the QR code again.',
+    errorFillAll: 'Please fill all required fields.',
+    errorPhone: 'Enter a valid 10-digit mobile number.',
+    errorDate: 'Purchase date cannot be before manufacturing date.',
+    otpNotReady: 'OTP system not ready. Please try again in a moment.',
+    successTitle: 'Registration Successful!',
+    successSub: 'Your warranty is now active. Certificate sent by email.',
+    dealerPlaceholder: 'Select Dealer',
+  },
+  hi: {
+    title: 'वारंटी पंजीकरण',
+    dealer: 'डीलर का नाम', dealerOther: 'अन्य डीलर का नाम',
+    customer: 'ग्राहक का नाम', purchase: 'खरीद की तारीख',
+    phone: 'मोबाइल नंबर', email: 'ईमेल (वैकल्पिक)',
+    verifyBtn: 'OTP सत्यापित करें और पंजीकरण करें',
+    loading: 'उत्पाद लोड हो रहा है…',
+    otpOpen: 'OTP खोला जा रहा है…', submitting: 'सबमिट हो रहा है…',
+    errorNoSN: 'सीरियल नंबर नहीं मिला। QR कोड फिर से स्कैन करें।',
+    errorFillAll: 'कृपया सभी आवश्यक जानकारी भरें।',
+    errorPhone: 'सही 10 अंकों का मोबाइल नंबर दर्ज करें।',
+    errorDate: 'खरीद की तारीख निर्माण तारीख से पहले नहीं हो सकती।',
+    otpNotReady: 'OTP सिस्टम तैयार नहीं है, कृपया पुनः प्रयास करें।',
+    successTitle: 'पंजीकरण सफल!',
+    successSub: 'आपकी वारंटी सक्रिय हो गई है। प्रमाणपत्र ईमेल से भेजा गया।',
+    dealerPlaceholder: 'डीलर चुनें',
+  }
+};
+function t(k) { return (T[currentLang] || T.en)[k] || T.en[k] || k; }
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-hi').classList.toggle('active', lang === 'hi');
+  updateLangUI();
+}
+
+function updateLangUI() {
+  document.getElementById('title-text').textContent        = t('title');
+  document.getElementById('lbl-dealer').textContent        = t('dealer') + ' *';
+  document.getElementById('lbl-dealer-other').textContent  = t('dealerOther') + ' *';
+  document.getElementById('lbl-customer').textContent      = t('customer') + ' *';
+  document.getElementById('lbl-purchase').textContent      = t('purchase') + ' *';
+  document.getElementById('lbl-phone').textContent         = t('phone') + ' *';
+  document.getElementById('lbl-email').textContent         = t('email');
+  document.getElementById('verify-btn').textContent        = t('verifyBtn');
+  document.getElementById('loading-text').textContent      = t('loading');
+  const sel = document.getElementById('dealer-select');
+  if (sel && sel.options[0] && !sel.options[0].value) sel.options[0].textContent = t('dealerPlaceholder');
+}
+
+/* ─── MSG91 ──────────────────────────────────────────────────────── */
+var configuration = {
+  widgetId:  '356c6a614a59393139323835',
+  tokenAuth: '479874Tz6YZockSUbu69273d6bP1',
+  identifier: '',
+  exposeMethods: false,
+  success: function(data) {
+    const token =
+      data.accessToken || data['access-token'] || data.token ||
+      (data.response && (data.response.accessToken || data.response['access-token'] || data.response.token)) ||
+      data.message;
+    if (!token) {
+      alert('Could not read OTP token. Please try again.');
+      resetBtn();
+      return;
+    }
+    completeRegistration(token);
+  },
+  failure: function() {
+    alert('OTP verification failed. Please try again.');
+    resetBtn();
+  }
+};
+
+/* ─── INIT ───────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', async () => {
+  updateLangUI();
+  const sn = new URLSearchParams(location.search).get('sn') || '';
+
+  if (!sn) {
+    showError(t('errorNoSN'));
+    return;
+  }
+
+  showState('loading');
+  await loadDealers();
+  await loadProduct(sn);
+});
+
+/* ─── PRODUCT LOAD ───────────────────────────────────────────────── */
+async function loadProduct(sn) {
+  try {
+    const res  = await fetch(`${API_BASE}?sn=${encodeURIComponent(sn)}`);
+    const data = await res.json();
+
+    if (!data.success || !data.product) {
+      showState('error');
+      document.getElementById('error-message').textContent = data.msg || 'Product not found.';
+      return;
+    }
+
+    const p = data.product;
+    window.currentSerialNo      = sn;
+    window.manufacturingDateRaw = p.manufacturingDate || '';
+
+    document.getElementById('product-info').innerHTML = `
+      <div class="row"><b>Serial No.</b><span>${p.serialNo || '—'}</span></div>
+      <div class="row"><b>Model</b><span>${p.modelName || '—'}</span></div>
+      <div class="row"><b>Mfg. Date</b><span>${p.manufacturingDate || '—'}</span></div>
+    `;
+
+    showState('form');
+  } catch (err) {
+    showState('error');
+    document.getElementById('error-message').textContent = 'Failed to load product. Please try again.';
+  }
+}
+
+/* ─── DEALERS ────────────────────────────────────────────────────── */
+async function loadDealers() {
+  const selectGroup = document.getElementById('dealer-select-group');
+  const otherGroup  = document.getElementById('dealer-other-group');
+  const sel         = document.getElementById('dealer-select');
+
+  try {
+    const res    = await fetch(`${API_BASE}?dealers=1`);
+    const result = await res.json();
+
+    if (!result.success || !Array.isArray(result.dealers) || result.dealers.length === 0) {
+      selectGroup.classList.add('hidden');
+      otherGroup.classList.remove('hidden');
+      return;
+    }
+
+    sel.innerHTML = `<option value="">${t('dealerPlaceholder')}</option>`;
+    result.dealers.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    const optOther = document.createElement('option');
+    optOther.value = 'OTHER';
+    optOther.textContent = 'Other';
+    sel.appendChild(optOther);
+
+    sel.addEventListener('change', () => {
+      otherGroup.classList.toggle('hidden', sel.value !== 'OTHER');
+    });
+  } catch {
+    selectGroup.classList.add('hidden');
+    otherGroup.classList.remove('hidden');
+  }
+}
+
+/* ─── VERIFY BUTTON ──────────────────────────────────────────────── */
+function onVerifyClick() {
+  hideMessages();
+
+  const sn = window.currentSerialNo;
+
+  // Collect dealer
+  const sg  = document.getElementById('dealer-select-group');
+  const sel = document.getElementById('dealer-select');
+  const og  = document.getElementById('dealer-other-group');
+  let dealer = '';
+  if (!sg.classList.contains('hidden')) {
+    dealer = sel.value === 'OTHER'
+      ? document.getElementById('dealer-other-input').value.trim()
+      : sel.value;
+  } else {
+    dealer = document.getElementById('dealer-other-input').value.trim();
+  }
+
+  const customer = document.getElementById('customer-input').value.trim();
+  const purchase = document.getElementById('purchase-input').value;
+  let   phone    = document.getElementById('phone-input').value.trim();
+  const email    = document.getElementById('email-input').value.trim();
+
+  if (!sn || !dealer || !customer || !purchase || !phone) {
+    showInlineError(t('errorFillAll')); return;
+  }
+
+  // Purchase ≥ manufacturing date
+  const mfgDate  = parseFlexible(window.manufacturingDateRaw);
+  const purDate  = new Date(purchase);
+  if (mfgDate && purDate < mfgDate) {
+    showInlineError(t('errorDate')); return;
+  }
+
+  phone = phone.replace(/\D/g, '');
+  if (phone.length === 10) {
+    configuration.identifier = '91' + phone;
+  } else if (phone.length === 12 && phone.startsWith('91')) {
+    configuration.identifier = phone;
+    phone = phone.slice(-10);
+  } else {
+    showInlineError(t('errorPhone')); return;
+  }
+
+  registrationData = { sn, dealer, customer, purchase, phone, email, lang: currentLang };
+
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true;
+  btn.textContent = t('otpOpen');
+
+  if (typeof window.initSendOTP === 'function') {
+    window.initSendOTP(configuration);
+  } else {
+    showInlineError(t('otpNotReady'));
+    resetBtn();
+  }
+}
+
+/* ─── COMPLETE REGISTRATION ──────────────────────────────────────── */
+async function completeRegistration(token) {
+  const btn = document.getElementById('verify-btn');
+  btn.textContent = t('submitting');
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'saveRegistration',
+        data: Object.assign({}, registrationData, { otp_token: token })
+      })
+    });
+
+    const result = await res.json();
+    if (!result.success) throw new Error(result.msg);
+
+    showSuccessPage(result);
+
+    // Notify the bot that registration succeeded (closes the Web App with data)
+    Telegram.WebApp.sendData(JSON.stringify({
+      event: 'warrantyRegistered',
+      sn: result.sn,
+      model: result.model,
+      warrantyEnds: result.warrantyExpiryDDMMYYYY
+    }));
+
+  } catch (err) {
+    resetBtn();
+    showInlineError('Error: ' + err.message);
+  }
+}
+
+/* ─── SUCCESS PAGE ───────────────────────────────────────────────── */
+function showSuccessPage(r) {
+  showState('success');
+  document.getElementById('succ-title').textContent = t('successTitle');
+  document.getElementById('succ-sub').textContent   = t('successSub');
+  document.getElementById('warranty-details').innerHTML = `
+    <div class="wrow"><span class="wlabel">Serial No.</span><span class="wval">${r.sn}</span></div>
+    <div class="wrow"><span class="wlabel">Model</span><span class="wval">${r.model || '—'}</span></div>
+    <div class="wrow"><span class="wlabel">Purchase Date</span><span class="wval">${r.purchaseDDMMYYYY || '—'}</span></div>
+    <div class="wrow"><span class="wlabel">Warranty Period</span><span class="wval">24 months</span></div>
+    <div class="wrow"><span class="wlabel">Valid Till</span><span class="wval" style="color:var(--accent)">${r.warrantyExpiryDDMMYYYY || '—'}</span></div>
+  `;
+}
+
+/* ─── HELPERS ────────────────────────────────────────────────────── */
+function showState(s) {
+  ['loading', 'error', 'form', 'success'].forEach(id => {
+    const el = document.getElementById(
+      id === 'form' ? 'main-content' :
+      id === 'success' ? 'success-state' :
+      id + '-state'
+    );
+    if (el) el.classList.toggle('hidden', id !== s);
+  });
+}
+
+function showError(msg) {
+  showState('error');
+  document.getElementById('error-message').textContent = msg;
+}
+
+function showInlineError(msg) {
+  const e = document.getElementById('client-error');
+  e.textContent = msg;
+  e.classList.remove('hidden');
+}
+
+function hideMessages() {
+  document.getElementById('client-error').classList.add('hidden');
+  document.getElementById('client-info').classList.add('hidden');
+}
+
+function resetBtn() {
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = false;
+  btn.textContent = t('verifyBtn');
+}
+
+function parseFlexible(s) {
+  if (!s) return null;
+  const dmy = s.match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/);
+  if (dmy) return new Date(+dmy[3], +dmy[2]-1, +dmy[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+</script>
+</body>
+</html>
